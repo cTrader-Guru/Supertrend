@@ -126,7 +126,7 @@ namespace cAlgo.Indicators
 
             }
 
-            
+
             UpTrend[index] = double.NaN;
             DownTrend[index] = double.NaN;
 
@@ -145,7 +145,7 @@ namespace cAlgo.Indicators
 
             Array.Resize(ref _trend, _trend.Length + 1);
 
-            
+
             if (Bars.ClosePrices[index] > _upBuffer[index - 1])
             {
                 _trend[index] = 1;
@@ -220,10 +220,10 @@ namespace cAlgo.Indicators
                 return;
 
             // --> Organizzo i dati per la richiesta degli aggiornamenti
-            Guru.API.RequestProductInfo Request = new Guru.API.RequestProductInfo
+            Guru.API.RequestProductInfo Request = new Guru.API.RequestProductInfo 
             {
 
-                MyProduct = new Guru.Product
+                MyProduct = new Guru.Product 
                 {
 
                     ID = ID,
@@ -381,8 +381,7 @@ namespace Guru
                     return json;
                 }
 
-            }
-            catch
+            } catch
             {
 
                 return null;
@@ -415,8 +414,7 @@ namespace Guru
 
                 return true;
 
-            }
-            catch
+            } catch
             {
 
                 return false;
@@ -520,8 +518,7 @@ namespace Guru
 
                 }
 
-            }
-            catch (Exception Exp)
+            } catch (Exception Exp)
             {
 
                 // --> Setup corrotto ? resetto!
@@ -538,7 +535,7 @@ namespace Guru
             {
 
                 // --> Strutturo le informazioni per la richiesta POST
-                NameValueCollection data = new NameValueCollection
+                NameValueCollection data = new NameValueCollection 
                 {
                     {
                         "account_broker",
@@ -587,8 +584,7 @@ namespace Guru
                 MySetup.LastCheck = now;
                 _writeSetup(MySetup);
 
-            }
-            catch (Exception Exp)
+            } catch (Exception Exp)
             {
 
                 // --> Qualcosa è andato storto, registro l'eccezione
