@@ -6,7 +6,6 @@
     Facebook    : https://www.facebook.com/ctrader.guru/
     YouTube     : https://www.youtube.com/channel/UCKkgbw09Fifj65W5t5lHeCQ
     GitHub      : https://github.com/cTraderGURU/
-    TOS         : https://ctrader.guru/termini-del-servizio/
 
 */
 
@@ -23,32 +22,17 @@ namespace cAlgo.Indicators
     public class Supertrend : Indicator
     {
 
-        #region Enums
-
-        // --> Eventuali enumeratori li mettiamo qui
-
-        #endregion
-
         #region Identity
-            
-        /// <summary>
-        /// Nome del prodotto, identificativo, da modificare con il nome della propria creazione
-        /// </summary>
+
         public const string NAME = "Supertrend";
 
-        /// <summary>
-        /// La versione del prodotto, progressivo, utilie per controllare gli aggiornamenti se viene reso disponibile sul sito ctrader.guru
-        /// </summary>
         public const string VERSION = "1.0.5";
 
         #endregion
 
         #region Params
 
-        /// <summary>
-        /// Identità del prodotto nel contesto di ctrader.guru
-        /// </summary>
-        [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://ctrader.guru/product/supertrend/")]
+        [Parameter(NAME + " " + VERSION, Group = "Identity", DefaultValue = "https://www.google.com/search?q=ctrader+guru+supertrend")]
         public string ProductInfo { get; set; }
 
         [Parameter(DefaultValue = 10, Group = "Params")]
@@ -87,7 +71,6 @@ namespace cAlgo.Indicators
         protected override void Initialize()
         {
 
-            // --> Stampo nei log la versione corrente
             Print("{0} : {1}", NAME, VERSION);
 
             _trend = new int[1];
@@ -100,7 +83,6 @@ namespace cAlgo.Indicators
         public override void Calculate(int index)
         {
 
-            // --> Ad ogni cambio candela resetto l'alert flag, è una semplice sicurezza ulteriore
             if (index != LastIndex)
             {
 
@@ -109,7 +91,6 @@ namespace cAlgo.Indicators
                 LastIndex = index;
 
             }
-
 
             UpTrend[index] = double.NaN;
             DownTrend[index] = double.NaN;
@@ -185,7 +166,7 @@ namespace cAlgo.Indicators
 
             }
 
-            _isChanged(index);
+            IsChanged(index);
 
         }
 
@@ -193,7 +174,7 @@ namespace cAlgo.Indicators
 
         #region Private Methods
 
-        void _isChanged(int myindex)
+        void IsChanged(int myindex)
         {
 
             if (!IsLastBar || !AlertOnChange || AlertInThisBar)

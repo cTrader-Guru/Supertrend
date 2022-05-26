@@ -1,4 +1,4 @@
-# Supertrend
-Ottimo indicatore per visualizzare l'andamento di un trend, ottimo se direzionale
+# SuperTrend
 
-[Pagina ufficiale](https://ctrader.guru/product/supertrend/)
+
+[Find more indicators, cbots and tools](https://ctrader-guru.github.io)
