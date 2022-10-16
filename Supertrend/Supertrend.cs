@@ -1,4 +1,4 @@
-﻿/*  CTRADER GURU --> Template 1.0.6
+/*  CTRADER GURU --> Template 1.0.6
 
     Homepage    : https://ctrader.guru/
     Telegram    : https://t.me/ctraderguru
@@ -9,6 +9,15 @@
 
 */
 
+/*
+ 
+    Problems with MessageBox:
+        
+        - https://help.ctrader.com/ctrader-automate/guides/ui/WinForms/#introduction
+        - Require AccessRights = AccessRights.FullAccess
+
+ */
+
 using System;
 using cAlgo.API;
 using System.Threading;
@@ -18,7 +27,7 @@ using System.Windows.Forms;
 namespace cAlgo.Indicators
 {
 
-    [Indicator(IsOverlay = true, AccessRights = AccessRights.None)]
+    [Indicator(IsOverlay = true, AccessRights = AccessRights.FullAccess)]
     public class Supertrend : Indicator
     {
 
@@ -26,7 +35,7 @@ namespace cAlgo.Indicators
 
         public const string NAME = "Supertrend";
 
-        public const string VERSION = "1.0.5";
+        public const string VERSION = "1.0.6";
 
         #endregion
 
@@ -41,13 +50,16 @@ namespace cAlgo.Indicators
         [Parameter(DefaultValue = 3.0, Group = "Params")]
         public double Multiplier { get; set; }
 
+        [Parameter("MA Type", DefaultValue = MovingAverageType.Triangular, Group = "Params")]
+        public MovingAverageType MAType { get; set; }
+
         [Parameter("Alert On Change ?", Group = "Params", DefaultValue = false)]
         public bool AlertOnChange { get; set; }
 
-        [Output("UpTrend", LineColor = "Green", PlotType = PlotType.Points, Thickness = 3)]
+        [Output("UpTrend", LineColor = "Green", PlotType = PlotType.DiscontinuousLine, Thickness = 1)]
         public IndicatorDataSeries UpTrend { get; set; }
 
-        [Output("DownTrend", LineColor = "Red", PlotType = PlotType.Points, Thickness = 3)]
+        [Output("DownTrend", LineColor = "Red", PlotType = PlotType.DiscontinuousLine, Thickness = 1)]
         public IndicatorDataSeries DownTrend { get; set; }
 
         #endregion
@@ -76,7 +88,7 @@ namespace cAlgo.Indicators
             _trend = new int[1];
             _upBuffer = CreateDataSeries();
             _downBuffer = CreateDataSeries();
-            _averageTrueRange = Indicators.AverageTrueRange(Period, MovingAverageType.WilderSmoothing);
+            _averageTrueRange = Indicators.AverageTrueRange(Period, MAType);
 
         }
 
@@ -98,8 +110,8 @@ namespace cAlgo.Indicators
             double median = (Bars.HighPrices[index] + Bars.LowPrices[index]) / 2;
             double atr = _averageTrueRange.Result[index];
 
-            _upBuffer[index] = median + Multiplier * atr;
-            _downBuffer[index] = median - Multiplier * atr;
+            _upBuffer[index] = median + (Multiplier * atr);
+            _downBuffer[index] = median - (Multiplier * atr);
 
 
             if (index < 1)
@@ -110,28 +122,35 @@ namespace cAlgo.Indicators
 
             Array.Resize(ref _trend, _trend.Length + 1);
 
-
             if (Bars.ClosePrices[index] > _upBuffer[index - 1])
             {
+
                 _trend[index] = 1;
                 if (_trend[index - 1] == -1)
                     _changeofTrend = true;
+
             }
             else if (Bars.ClosePrices[index] < _downBuffer[index - 1])
             {
+
                 _trend[index] = -1;
                 if (_trend[index - 1] == -1)
                     _changeofTrend = true;
+
             }
             else if (_trend[index - 1] == 1)
             {
+
                 _trend[index] = 1;
                 _changeofTrend = false;
+
             }
             else if (_trend[index - 1] == -1)
             {
+
                 _trend[index] = -1;
                 _changeofTrend = false;
+
             }
 
             if (_trend[index] < 0 && _trend[index - 1] > 0)
@@ -146,23 +165,16 @@ namespace cAlgo.Indicators
 
             if (_trend[index] == 1)
             {
-                UpTrend[index] = _downBuffer[index];
-                if (_changeofTrend)
-                {
 
-                    UpTrend[index - 1] = DownTrend[index - 1];
-                    _changeofTrend = false;
-                }
+                UpTrend[index] = _downBuffer[index];
+                if (_changeofTrend) _changeofTrend = false;
+
             }
             else if (_trend[index] == -1)
             {
-                DownTrend[index] = _upBuffer[index];
-                if (_changeofTrend)
-                {
 
-                    DownTrend[index - 1] = UpTrend[index - 1];
-                    _changeofTrend = false;
-                }
+                DownTrend[index] = _upBuffer[index];
+                if (_changeofTrend) _changeofTrend = false;
 
             }
 
@@ -174,12 +186,26 @@ namespace cAlgo.Indicators
 
         #region Private Methods
 
+        private void ToPopUp(string mex)
+        {
+
+            bool canShowPopUp = RunningMode == RunningMode.RealTime || RunningMode == RunningMode.VisualBacktesting;
+
+            if (!AlertOnChange || !canShowPopUp || mex == null || mex.Trim().Length == 0)
+                return;
+
+            mex = mex.Trim();
+
+            new Thread(new ThreadStart(delegate { System.Windows.Forms.MessageBox.Show(mex, "BreakOut", MessageBoxButtons.OK, MessageBoxIcon.Information); })).Start();
+
+        }
+
         void IsChanged(int myindex)
         {
 
             if (!IsLastBar || !AlertOnChange || AlertInThisBar)
                 return;
-
+            
             if (lastDirection > -1 && DownTrend[myindex] > 0)
             {
 
@@ -193,7 +219,7 @@ namespace cAlgo.Indicators
 
                 lastDirection = -1;
                 AlertInThisBar = true;
-                new Thread(new ThreadStart(delegate { MessageBox.Show(string.Format("{0} {1} {2} changed to DOWN", NAME, Symbol.Name, Bars.TimeFrame), "Changed", MessageBoxButtons.OK, MessageBoxIcon.Information); })).Start();
+                ToPopUp(string.Format("{0} {1} {2} changed to DOWN", NAME, Symbol.Name, Bars.TimeFrame));
 
             }
             else if (lastDirection < 1 && UpTrend[myindex] > 0)
@@ -209,7 +235,7 @@ namespace cAlgo.Indicators
 
                 lastDirection = 1;
                 AlertInThisBar = true;
-                new Thread(new ThreadStart(delegate { MessageBox.Show(string.Format("{0} {1} {2} changed to UP", NAME, Symbol.Name, Bars.TimeFrame), "Changed", MessageBoxButtons.OK, MessageBoxIcon.Information); })).Start();
+                ToPopUp(string.Format("{0} {1} {2} changed to UP", NAME, Symbol.Name, Bars.TimeFrame));
 
             }
 
